@@ -5,7 +5,8 @@ const startBtn = document.querySelector("#startBtn");
 startBtn.addEventListener('click', startGame);
 
 // Variables jeu
-const words = ["oisiveté","désinformation","calamiteuses","jérémiades","éclaircissements","gateaux","commentateurs","cathartique","chlamydia"];
+let dico = [];
+let words = [];
 let currentWord = 0;
 let currentLetter = 0;
 let keyPressed = 0;
@@ -23,6 +24,7 @@ function startGame() {
     accuratePresses = 0;
     userWord = "";
     timer = 0;
+    words = []
 
     endGame();
     // vider le container et les statsblock
@@ -32,7 +34,11 @@ function startGame() {
     while(statsBlock.firstChild) {
         statsBlock.removeChild(statsBlock.firstChild);
     }
-   
+
+    for(let i = 0; i < 20; i++) {
+        words.push(randomWord());
+    }
+
     // construire les éléments HTML pour la liste de mots
     words.forEach((word) => {
         let wordSlot = document.createElement("p");
@@ -62,27 +68,27 @@ function startGame() {
 function matchLetters(e) {
     userWord += e.key; // On concatène la lettre tapée
     keyPressed++;
-
-    if(words[currentWord].startsWith(userWord)) { // Si le mot est bon
+    
+    if(words[currentWord][currentLetter] == e.key) { // Si le mot est bon
 
         // Incrémentation des variables utiles
         accuratePresses++;
-        currentLetter++;
-
+        
         // Modification visuelle
-        container.children[currentWord].innerHTML = `<span class=validated>${userWord}</span>${words[currentWord].substring(userWord.length)}`;
+        // container.children[currentWord].innerHTML = `<span class=validated>${userWord}</span>${words[currentWord].substring(userWord.length)}`;
         // Si le mot est terminé, on passe au suivant
+    } 
+    // // Si faute de frappe, on passe au mot suivant
+    // else {
+        //     nextWord(false);
+        // }
+        
+        currentLetter++;
+        updateStats();
         if (currentLetter == words[currentWord].length) {
             nextWord(true);
         }
-    } 
-    // Si faute de frappe, on passe au mot suivant
-    else {
-        nextWord(false);
     }
-
-    updateStats();
-}
 
 function nextWord(validated) {
     if (validated) {
@@ -103,6 +109,15 @@ function updateStats() {
     statsBlock.children[2].textContent = `${(accuratePresses/(timer-currentWord*0.2)*60).toFixed(0)} caractères par minute`;
 }
 
+function colorWord(valid) {
+    if(valid) {
+        
+    } else {
+
+    }
+
+}
+
 function endGame() {
     document.removeEventListener('keyup', matchLetters);
     stopTimer();
@@ -118,4 +133,23 @@ function startTimer() {
 
 function stopTimer() {
     clearInterval(interval);
+}
+
+
+// Générer le dico
+(async function importerFichierDico() {
+    try {
+        const reponse = await fetch('mots.txt');
+        const contenu = await reponse.text();
+
+        const lines = contenu.split('\n');
+        const lines2 = lines.map(line => line.replace ('\r', ''));
+        dico = [...new Set(lines2)].filter((word) => word.length>7 && !word.includes("â") && !word.includes("ê") && !word.includes("ô") && !word.includes("û") && !word.includes("î"));
+    } catch(error) {
+        console.error('Une erreur s\'est produite lors de l\'importation du fichier :', error);
+    }
+}) ();
+
+function randomWord() {
+    return dico[Math.floor(Math.random()*dico.length)];
 }
