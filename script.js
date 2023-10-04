@@ -99,7 +99,6 @@ function nextWord(validated) {
 }
 
 function updateStats() {
-    console.log("yo")
     statsBlock.children[0].textContent = `${(accuratePresses / keyPressed * 100).toFixed(0)}% de précision (${accuratePresses} sur ${keyPressed})`
     statsBlock.children[2].textContent = `${(accuratePresses/(timer-currentWord*0.2)*60).toFixed(0)} caractères par minute`;
 }
