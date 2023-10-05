@@ -41,12 +41,12 @@ function startGame() {
     const accuracyPar = document.createElement("p");
     accuracyPar.textContent = `0% de précision (0 sur 0)`;
     statsBlock.appendChild(accuracyPar);
-    const timePar = document.createElement("p");
-    statsBlock.appendChild(timePar);
     const cps = document.createElement("p");
     statsBlock.appendChild(cps);
     const wordsCompleted = document.createElement("p");
     statsBlock.appendChild(wordsCompleted);
+    const timePar = document.createElement("p");
+    statsBlock.appendChild(timePar);
     
     // Event listener pour le clavier utilisateur
     document.addEventListener('keydown', matchLetters);
@@ -58,6 +58,9 @@ function startGame() {
 
 // Fonctions jeu
 function matchLetters(e) {
+    if (e.key == " ") {
+        e.preventDefault();
+    }
     if (e.key != "Dead" && e.key != "Shift" && e.key != "Backspace" && e.key != " ") {
         userWord += e.key; // On concatène la lettre tapée
         keyPressed++;
@@ -107,8 +110,8 @@ function addWord() {
 
 function updateStats() {
     statsBlock.children[0].textContent = `${(accuratePresses / keyPressed * 100).toFixed(0)}% de précision (${accuratePresses} sur ${keyPressed})`
-    statsBlock.children[2].textContent = `${(accuratePresses/(timePassed-currentWord*0.2)*60).toFixed(0)} caractères par minute`;
-    statsBlock.children[3].textContent = `${words.length-1} mots complétés`
+    statsBlock.children[1].textContent = `${(accuratePresses/(timePassed-currentWord*0.2)*60).toFixed(0)} caractères par minute`;
+    statsBlock.children[2].textContent = `${words.length-1} mots complétés`
 
 }
 
@@ -128,7 +131,7 @@ function startTimer() {
 }
 
 function displayTimer() {
-    statsBlock.children[1].textContent = `${totalTime - timePassed} secondes restantes`;
+    statsBlock.children[3].textContent = `${totalTime - timePassed} secondes restantes`;
 }
 
 function stopTimer() {

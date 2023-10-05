@@ -30,6 +30,8 @@ button {
     border-radius: 10px;
     cursor: pointer;
     background-color: #ffc93d;
+    box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+
 }
 
 button:hover {
@@ -102,4 +104,7 @@ main {
 
 .stats>p {
     margin: 0;
+    padding: 10px 20px;
+    background-color: white;
+    border-radius: 10px;
 }
