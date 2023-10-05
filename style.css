@@ -44,6 +44,7 @@ button:hover {
     box-sizing: border-box;
     height: 140px;
     line-height: 140px;
+    min-width: 500px;
 }
 
 .validated {

@@ -12,7 +12,8 @@ let currentLetter = 0;
 let keyPressed = 0;
 let accuratePresses = 0;
 let userWord = "";
-let timer = 0;
+let timePassed = 0;
+let totalTime = 0;
 let interval = 0;
 
 // Initialisation
@@ -23,7 +24,8 @@ function startGame() {
     keyPressed = 0;
     accuratePresses = 0;
     userWord = "";
-    timer = 0;
+    totalTime = 30;
+    timePassed = 0;
     words = []
 
     endGame();
@@ -35,17 +37,6 @@ function startGame() {
         statsBlock.removeChild(statsBlock.firstChild);
     }
 
-    for(let i = 0; i < 20; i++) {
-        words.push(randomWord());
-    }
-
-    // construire les éléments HTML pour la liste de mots
-    words.forEach((word) => {
-        let wordSlot = document.createElement("p");
-        wordSlot.innerHTML = word;
-        container.appendChild(wordSlot);
-    })
-
     // Construire les stats
     const accuracyPar = document.createElement("p");
     accuracyPar.textContent = `0% de précision (0 sur 0)`;
@@ -54,89 +45,102 @@ function startGame() {
     statsBlock.appendChild(timePar);
     const cps = document.createElement("p");
     statsBlock.appendChild(cps);
+    const wordsCompleted = document.createElement("p");
+    statsBlock.appendChild(wordsCompleted);
     
     // Event listener pour le clavier utilisateur
-    document.addEventListener('keyup', matchLetters);
+    document.addEventListener('keydown', matchLetters);
 
-    // Première transition
-    container.style.top = `${-140 * currentWord - 10}px`;    
-
-    startTimer()
+    nextWord();
+    updateStats();
+    startTimer();
 }
 
 // Fonctions jeu
 function matchLetters(e) {
-    userWord += e.key; // On concatène la lettre tapée
-    keyPressed++;
-    
-    if(words[currentWord][currentLetter] == e.key) { // Si le mot est bon
+    if (e.key != "Dead" && e.key != "Shift" && e.key != "Backspace") {
+        userWord += e.key; // On concatène la lettre tapée
+        keyPressed++;
+        console.log(e.key);
 
-        // Incrémentation des variables utiles
-        accuratePresses++;
-        
-        // Modification visuelle
-        // container.children[currentWord].innerHTML = `<span class=validated>${userWord}</span>${words[currentWord].substring(userWord.length)}`;
-        // Si le mot est terminé, on passe au suivant
-    } 
-    // // Si faute de frappe, on passe au mot suivant
-    // else {
-        //     nextWord(false);
-        // }
-        
-        currentLetter++;
-        updateStats();
-        if (currentLetter == words[currentWord].length) {
-            nextWord(true);
+        if(words[currentWord].startsWith(userWord)) { // Si le mot est bon
+            // Incrémentation des variables utiles
+            accuratePresses++;
+            currentLetter++;
+            // Modification visuelle
+            container.children[currentWord].innerHTML = `<span class=validated>${userWord}</span>${words[currentWord].substring(userWord.length)}`;
+            // Si le mot est terminé, on passe au suivant
+            if (currentLetter == words[currentWord].length) {
+                nextWord();
+            }
+            if(container.children[currentWord].classList.contains("invalidated")) {
+                container.children[currentWord].classList.toggle("invalidated");
+            }
+        }
+        // Si faute de frappe, on annule le dernier coup et on indique l'erreur
+        else {
+            if(!container.children[currentWord].classList.contains("invalidated")) {
+                container.children[currentWord].classList.toggle("invalidated");
+            }
+            userWord = userWord.substring(0, userWord.length-1)
+        }
+            updateStats();
         }
     }
 
-function nextWord(validated) {
-    if (validated) {
-        container.children[currentWord].classList.toggle("validated");
-    } else {
-        container.children[currentWord].classList.toggle("invalidated");
+function nextWord() {
+    if (words.length != 0) {
+        addTime();
+        currentWord++;
     }
-
-    currentWord++;
+    addWord();
     currentLetter = 0;
     userWord = "";
     container.style.top = `${-140 * currentWord - 10}px`;
-    if (currentWord == words.length) endGame() 
+}
+
+function addWord() {
+        words.push(randomWord());
+        let wordSlot = document.createElement("p");
+        wordSlot.innerHTML = words.at(-1);
+        container.appendChild(wordSlot);
 }
 
 function updateStats() {
     statsBlock.children[0].textContent = `${(accuratePresses / keyPressed * 100).toFixed(0)}% de précision (${accuratePresses} sur ${keyPressed})`
-    statsBlock.children[2].textContent = `${(accuratePresses/(timer-currentWord*0.2)*60).toFixed(0)} caractères par minute`;
-}
-
-function colorWord(valid) {
-    if(valid) {
-        
-    } else {
-
-    }
+    statsBlock.children[2].textContent = `${(accuratePresses/(timePassed-currentWord*0.2)*60).toFixed(0)} caractères par minute`;
+    statsBlock.children[3].textContent = `${words.length-1} mots trouvés`
 
 }
 
 function endGame() {
-    document.removeEventListener('keyup', matchLetters);
+    document.removeEventListener('keydown', matchLetters);
     stopTimer();
 }
 
 // Timer
 function startTimer() {
     interval = setInterval(() => {
-        timer++;
-        statsBlock.children[1].textContent = `${timer} secondes écoulées`
+        timePassed++;
+        displayTimer();
+        if (totalTime - timePassed == 0) endGame();
     }, 1000);
+}
+
+function displayTimer() {
+    statsBlock.children[1].textContent = `${totalTime - timePassed} secondes restantes`;
 }
 
 function stopTimer() {
     clearInterval(interval);
 }
 
+function addTime() {
+    totalTime = totalTime + 2;
+    displayTimer();
+}
 
-// Générer le dico
+// Fonctions dictionnaire
 (async function importerFichierDico() {
     try {
         const reponse = await fetch('mots.txt');
@@ -144,7 +148,7 @@ function stopTimer() {
 
         const lines = contenu.split('\n');
         const lines2 = lines.map(line => line.replace ('\r', ''));
-        dico = [...new Set(lines2)].filter((word) => word.length>7 && !word.includes("â") && !word.includes("ê") && !word.includes("ô") && !word.includes("û") && !word.includes("î"));
+        dico = [...new Set(lines2)].filter((word) => word.length>7);
     } catch(error) {
         console.error('Une erreur s\'est produite lors de l\'importation du fichier :', error);
     }
