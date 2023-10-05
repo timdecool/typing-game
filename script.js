@@ -58,10 +58,9 @@ function startGame() {
 
 // Fonctions jeu
 function matchLetters(e) {
-    if (e.key != "Dead" && e.key != "Shift" && e.key != "Backspace") {
+    if (e.key != "Dead" && e.key != "Shift" && e.key != "Backspace" && e.key != " ") {
         userWord += e.key; // On concatène la lettre tapée
         keyPressed++;
-        console.log(e.key);
 
         if(words[currentWord].startsWith(userWord)) { // Si le mot est bon
             // Incrémentation des variables utiles
@@ -96,7 +95,7 @@ function nextWord() {
     addWord();
     currentLetter = 0;
     userWord = "";
-    container.style.top = `${-140 * currentWord - 10}px`;
+    container.style.top = `${-380 * currentWord - 10}px`;
 }
 
 function addWord() {
@@ -109,7 +108,7 @@ function addWord() {
 function updateStats() {
     statsBlock.children[0].textContent = `${(accuratePresses / keyPressed * 100).toFixed(0)}% de précision (${accuratePresses} sur ${keyPressed})`
     statsBlock.children[2].textContent = `${(accuratePresses/(timePassed-currentWord*0.2)*60).toFixed(0)} caractères par minute`;
-    statsBlock.children[3].textContent = `${words.length-1} mots trouvés`
+    statsBlock.children[3].textContent = `${words.length-1} mots complétés`
 
 }
 
@@ -123,6 +122,7 @@ function startTimer() {
     interval = setInterval(() => {
         timePassed++;
         displayTimer();
+        updateStats();
         if (totalTime - timePassed == 0) endGame();
     }, 1000);
 }
@@ -141,7 +141,7 @@ function addTime() {
 }
 
 // Fonctions dictionnaire
-(async function importerFichierDico() {
+(async function importDictionary() {
     try {
         const reponse = await fetch('mots.txt');
         const contenu = await reponse.text();
